@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { useMobile } from "@/hooks/use-mobile"
 import { Plus, MapPin, Building2 } from "lucide-react"
 import Link from "next/link"
 import type { Ville, Pays, Eglise, CreateVilleData } from "@/lib/types"
@@ -30,9 +31,11 @@ export default function VillesPage() {
   const [selectedVille, setSelectedVille] = useState<Ville | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [mobileModalOpen, setMobileModalOpen] = useState(false)
   const [editingVille, setEditingVille] = useState<Ville | null>(null)
   const [formData, setFormData] = useState<CreateVilleData>({ nom: "", paysId: 0 })
   const { toast } = useToast()
+  const isMobile = useMobile()
 
   const fetchData = async () => {
     try {
@@ -87,6 +90,7 @@ export default function VillesPage() {
           description: editingVille ? "Ville modifiée avec succès" : "Ville créée avec succès",
         })
         setDialogOpen(false)
+        setMobileModalOpen(false)
         setEditingVille(null)
         setFormData({ nom: "", paysId: 0 })
         fetchData()
@@ -146,6 +150,9 @@ export default function VillesPage() {
 
   const handleRowClick = (ville: Ville) => {
     setSelectedVille(ville)
+    if (isMobile) {
+      setMobileModalOpen(true)
+    }
   }
 
   const getEglisesCount = (villeId: number) => {
@@ -211,7 +218,7 @@ export default function VillesPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className={`space-y-6 ${isMobile ? "hidden" : ""}`}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -317,6 +324,66 @@ export default function VillesPage() {
                 <Button type="submit">{editingVille ? "Modifier" : "Ajouter"}</Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
+          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Détails de la Ville</DialogTitle>
+            </DialogHeader>
+            {selectedVille && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nom:</span>
+                    <span>{selectedVille.nom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Pays:</span>
+                    <span>{pays.find((p) => p.id === selectedVille.paysId)?.nom || "Non trouvé"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nombre d'églises:</span>
+                    <span className="text-blue-600 font-medium">{getEglisesCount(selectedVille.id)}</span>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Églises de cette ville</h4>
+                  {getEglisesForVille(selectedVille.id).length > 0 ? (
+                    <div className="space-y-2">
+                      {getEglisesForVille(selectedVille.id).map((eglise) => (
+                        <div
+                          key={eglise.id}
+                          className="p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                          onClick={() => {
+                            setMobileModalOpen(false)
+                            window.location.href = `/eglises?highlight=${eglise.id}`
+                          }}
+                        >
+                          <div className="font-medium">{eglise.nom}</div>
+                          <div className="text-sm text-muted-foreground">{eglise.adresse}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">Aucune église dans cette ville</div>
+                  )}
+                  <Button
+                    className="w-full mt-4 bg-transparent"
+                    variant="outline"
+                    onClick={() => {
+                      setMobileModalOpen(false)
+                      window.location.href = `/eglises?ville=${selectedVille.id}`
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter une église
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>

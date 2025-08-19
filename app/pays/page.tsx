@@ -21,8 +21,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { useMobile } from "@/hooks/use-mobile"
 import { Plus } from "lucide-react"
 import type { Continent, Pays, Ville, Eglise, CreatePaysData } from "@/lib/types"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 
 export default function PaysPage() {
   const [continents, setContinents] = useState<Continent[]>([])
@@ -32,9 +34,13 @@ export default function PaysPage() {
   const [selectedPays, setSelectedPays] = useState<Pays | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [mobileModalOpen, setMobileModalOpen] = useState(false)
   const [editingPays, setEditingPays] = useState<Pays | null>(null)
   const [formData, setFormData] = useState<CreatePaysData>({ nom: "", continentId: 0 })
   const { toast } = useToast()
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [paysToDelete, setPaysToDelete] = useState<Pays | null>(null)
+  const isMobile = useMobile()
 
   const fetchData = async () => {
     try {
@@ -127,10 +133,15 @@ export default function PaysPage() {
   }
 
   const handleDelete = async (pays: Pays) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce pays ?")) return
+    setPaysToDelete(pays)
+    setConfirmDeleteOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!paysToDelete) return
 
     try {
-      const response = await fetch(`/api/pays/${pays.id}`, {
+      const response = await fetch(`/api/pays/${paysToDelete.id}`, {
         method: "DELETE",
       })
 
@@ -155,11 +166,17 @@ export default function PaysPage() {
         description: "Une erreur est survenue",
         variant: "destructive",
       })
+    } finally {
+      setConfirmDeleteOpen(false)
+      setPaysToDelete(null)
     }
   }
 
   const handleRowClick = (pays: Pays) => {
     setSelectedPays(pays)
+    if (isMobile) {
+      setMobileModalOpen(true)
+    }
   }
 
   const columns = [
@@ -249,7 +266,7 @@ export default function PaysPage() {
             </Card>
           </div>
 
-          <div>
+          <div className={isMobile ? "hidden" : ""}>
             {selectedPays ? (
               <RelatedEntities
                 title={`Villes en ${selectedPays.nom}`}
@@ -318,6 +335,77 @@ export default function PaysPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
+          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Détails du Pays</DialogTitle>
+            </DialogHeader>
+            {selectedPays && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nom:</span>
+                    <span>{selectedPays.nom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Continent:</span>
+                    <span>{continents.find((c) => c.id === selectedPays.continentId)?.nom || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nombre de villes:</span>
+                    <span className="text-blue-600 font-medium">{villesForSelectedPays.length}</span>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Villes en {selectedPays.nom}</h4>
+                  {villesForSelectedPays.length > 0 ? (
+                    <div className="space-y-2">
+                      {villesForSelectedPays.map((ville) => (
+                        <div
+                          key={ville.id}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                          onClick={() => {
+                            setMobileModalOpen(false)
+                            window.location.href = `/villes?highlight=${ville.id}`
+                          }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="font-medium">{ville.name}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">→</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">Aucune ville dans ce pays</div>
+                  )}
+                  <Button
+                    className="w-full mt-4 bg-transparent"
+                    variant="outline"
+                    onClick={() => {
+                      setMobileModalOpen(false)
+                      window.location.href = `/villes?pays=${selectedPays.id}`
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter une ville
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <ConfirmDialog
+          open={confirmDeleteOpen}
+          onOpenChange={setConfirmDeleteOpen}
+          title="Supprimer le pays"
+          description={`Êtes-vous sûr de vouloir supprimer le pays ${paysToDelete?.nom}?`}
+          onConfirm={confirmDelete}
+        />
       </div>
     </div>
   )

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Building, Users, Briefcase, Target, Map, TrendingUp, AlertCircle, Plus, Globe } from "lucide-react"
+import { MapPin, Building, Users, Briefcase, Target, Map, AlertCircle, Plus, Globe } from "lucide-react"
 import type { Eglise } from "@/lib/types"
 
 interface Stats {
@@ -146,68 +146,78 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">Système de Gestion d'Églises</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Gérez efficacement votre organisation avec notre système complet de gestion hiérarchique : continents, pays,
-            villes, églises, départements et pôles.
+            Gérez efficacement l'organisation hiérarchie au sein des églises ICC: continents, pays, villes, églises,
+            départements et pôles.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Link href="/eglises">
-            <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.eglises}</p>
-                    <p className="text-xs text-muted-foreground">Églises</p>
-                  </div>
+        <div className="mb-16">
+          <Card className="max-w-4xl mx-auto">
+            <CardHeader className="text-center">
+              <CardTitle>Hiérarchie Organisationnelle</CardTitle>
+              <CardDescription>Structure complète de votre organisation</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-center space-x-4 text-sm">
+                  <Link href="/continents">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-950 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900 cursor-pointer transition-colors">
+                      <Globe className="h-4 w-4 text-indigo-600" />
+                      <span className="font-medium">{stats.continents} Continents</span>
+                    </div>
+                  </Link>
+                  <span className="text-muted-foreground">→</span>
+                  <Link href="/pays">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-950 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer transition-colors">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium">{stats.pays} Pays</span>
+                    </div>
+                  </Link>
+                  <span className="text-muted-foreground">→</span>
+                  <Link href="/villes">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-950 rounded-md hover:bg-green-100 dark:hover:bg-green-900 cursor-pointer transition-colors">
+                      <Building className="h-4 w-4 text-green-600" />
+                      <span className="font-medium">{stats.villes} Villes</span>
+                    </div>
+                  </Link>
+                  <span className="text-muted-foreground">→</span>
+                  <Link href="/eglises">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-950 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900 cursor-pointer transition-colors">
+                      <Users className="h-4 w-4 text-purple-600" />
+                      <span className="font-medium">{stats.eglises} Églises</span>
+                    </div>
+                  </Link>
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/carte">
-            <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4 text-green-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.eglisesAvecCoordonnees}</p>
-                    <p className="text-xs text-muted-foreground">Sur la carte</p>
-                  </div>
+                <div className="flex items-center justify-center space-x-4 text-sm">
+                  <Link href="/eglises">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-950 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900 cursor-pointer transition-colors">
+                      <Users className="h-4 w-4 text-purple-600" />
+                      <span className="font-medium">Églises</span>
+                    </div>
+                  </Link>
+                  <span className="text-muted-foreground">→</span>
+                  <Link href="/departements">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-orange-50 dark:bg-orange-950 rounded-md hover:bg-orange-100 dark:hover:bg-orange-900 cursor-pointer transition-colors">
+                      <Briefcase className="h-4 w-4 text-orange-600" />
+                      <span className="font-medium">{stats.departements} Départements</span>
+                    </div>
+                  </Link>
+                  <span className="text-muted-foreground">→</span>
+                  <Link href="/poles">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-red-50 dark:bg-red-950 rounded-md hover:bg-red-100 dark:hover:bg-red-900 cursor-pointer transition-colors">
+                      <Target className="h-4 w-4 text-red-600" />
+                      <span className="font-medium">{stats.poles} Pôles</span>
+                      <span className="text-xs text-muted-foreground">(optionnel)</span>
+                    </div>
+                  </Link>
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/departements">
-            <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Briefcase className="h-4 w-4 text-orange-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.departements}</p>
-                    <p className="text-xs text-muted-foreground">Départements</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/poles">
-            <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Target className="h-4 w-4 text-red-600" />
-                  <div>
-                    <p className="text-2xl font-bold">{stats.poles}</p>
-                    <p className="text-xs text-muted-foreground">Pôles</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2">
             <h2 className="text-2xl font-semibold mb-6">Gestion</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {managementSections.map((section) => {
@@ -273,19 +283,21 @@ export default function HomePage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {recentEglises.map((eglise) => (
-                    <div key={eglise.id} className="flex items-center space-x-3 p-2 rounded-md border">
-                      <div className="flex-shrink-0">
-                        {eglise.latitude && eglise.longitude ? (
-                          <MapPin className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-orange-600" />
-                        )}
+                    <Link key={eglise.id} href={`/eglises/${eglise.id}`}>
+                      <div className="flex items-center space-x-3 p-2 rounded-md border hover:bg-muted/50 cursor-pointer transition-colors">
+                        <div className="flex-shrink-0">
+                          {eglise.latitude && eglise.longitude ? (
+                            <MapPin className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-orange-600" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{eglise.nom}</p>
+                          <p className="text-xs text-muted-foreground truncate">{eglise.ville?.nom}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{eglise.nom}</p>
-                        <p className="text-xs text-muted-foreground truncate">{eglise.ville?.nom}</p>
-                      </div>
-                    </div>
+                    </Link>
                   ))}
                   <Button asChild variant="ghost" size="sm" className="w-full">
                     <Link href="/eglises">Voir toutes les églises</Link>
@@ -315,57 +327,6 @@ export default function HomePage() {
               </Card>
             )}
           </div>
-        </div>
-
-        <div className="mt-16">
-          <Card className="max-w-4xl mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle>Hiérarchie Organisationnelle</CardTitle>
-              <CardDescription>Structure complète de votre organisation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col space-y-4">
-                <div className="flex items-center justify-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-950 rounded-md">
-                    <Globe className="h-4 w-4 text-indigo-600" />
-                    <span className="font-medium">{stats.continents} Continents</span>
-                  </div>
-                  <span className="text-muted-foreground">→</span>
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-950 rounded-md">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium">{stats.pays} Pays</span>
-                  </div>
-                  <span className="text-muted-foreground">→</span>
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-950 rounded-md">
-                    <Building className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">{stats.villes} Villes</span>
-                  </div>
-                  <span className="text-muted-foreground">→</span>
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-950 rounded-md">
-                    <Users className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium">{stats.eglises} Églises</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-950 rounded-md">
-                    <Users className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium">Églises</span>
-                  </div>
-                  <span className="text-muted-foreground">→</span>
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-orange-50 dark:bg-orange-950 rounded-md">
-                    <Briefcase className="h-4 w-4 text-orange-600" />
-                    <span className="font-medium">{stats.departements} Départements</span>
-                  </div>
-                  <span className="text-muted-foreground">→</span>
-                  <div className="flex items-center space-x-2 px-3 py-2 bg-red-50 dark:bg-red-950 rounded-md">
-                    <Target className="h-4 w-4 text-red-600" />
-                    <span className="font-medium">{stats.poles} Pôles</span>
-                    <span className="text-xs text-muted-foreground">(optionnel)</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

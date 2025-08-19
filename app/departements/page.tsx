@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
+import { useMobile } from "@/hooks/use-mobile"
 import { Plus, Target, Filter, Building2 } from "lucide-react"
 import type { Departement, Eglise, Ville, Pays, CreateDepartementData, Pole } from "@/lib/types"
 import Link from "next/link"
@@ -36,9 +37,11 @@ export default function DepartementsPage() {
   const [filterPays, setFilterPays] = useState<string>("all")
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false)
   const [editingDepartement, setEditingDepartement] = useState<Departement | null>(null)
   const [formData, setFormData] = useState<CreateDepartementData>({ nom: "", acronyme: "", egliseId: 0 })
   const { toast } = useToast()
+  const isMobile = useMobile()
 
   const fetchData = async () => {
     try {
@@ -158,6 +161,9 @@ export default function DepartementsPage() {
 
   const handleRowClick = (departement: Departement) => {
     setSelectedDepartement(departement)
+    if (isMobile) {
+      setMobileDetailsOpen(true)
+    }
   }
 
   const columns = [
@@ -214,8 +220,8 @@ export default function DepartementsPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className={`grid gap-6 ${isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"}`}>
+          <div className={isMobile ? "" : "lg:col-span-2"}>
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -309,73 +315,141 @@ export default function DepartementsPage() {
             </Card>
           </div>
 
-          <div className="space-y-4">
-            {selectedDepartement ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Building2 className="h-5 w-5" />
-                    <span>Détails du département</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{selectedDepartement.nom}</h3>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Badge variant="secondary">{selectedDepartement.acronyme}</Badge>
+          {!isMobile && (
+            <div className="space-y-4">
+              {selectedDepartement ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Building2 className="h-5 w-5" />
+                      <span>Détails du département</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-lg">{selectedDepartement.nom}</h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="secondary">{selectedDepartement.acronyme}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">Église: {selectedDepartement.eglise?.nom}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Ville: {selectedDepartement.eglise?.ville?.nom} ({selectedDepartement.eglise?.ville?.pays?.nom})
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">Église: {selectedDepartement.eglise?.nom}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Ville: {selectedDepartement.eglise?.ville?.nom} ({selectedDepartement.eglise?.ville?.pays?.nom})
-                    </p>
-                  </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">
-                        Pôles ({poles.filter((p) => p.departementId === selectedDepartement.id).length})
-                      </h4>
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/poles?departement=${selectedDepartement.id}`}>
-                          <Plus className="h-3 w-3 mr-1" />
-                          Ajouter
-                        </Link>
-                      </Button>
-                    </div>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {poles
-                        .filter((p) => p.departementId === selectedDepartement.id)
-                        .map((pole) => (
-                          <Link
-                            key={pole.id}
-                            href={`/poles?highlight=${pole.id}`}
-                            className="block p-2 rounded border hover:bg-muted transition-colors"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium text-sm">{pole.nom}</p>
-                                <p className="text-xs text-muted-foreground">Département: {selectedDepartement.nom}</p>
-                              </div>
-                              <div className="text-xs text-muted-foreground">ID: {pole.id}</div>
-                            </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">
+                          Pôles ({poles.filter((p) => p.departementId === selectedDepartement.id).length})
+                        </h4>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/poles?departement=${selectedDepartement.id}`}>
+                            <Plus className="h-3 w-3 mr-1" />
+                            Ajouter
                           </Link>
-                        ))}
-                      {poles.filter((p) => p.departementId === selectedDepartement.id).length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">Aucun pôle dans ce département</p>
-                      )}
+                        </Button>
+                      </div>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {poles
+                          .filter((p) => p.departementId === selectedDepartement.id)
+                          .map((pole) => (
+                            <Link
+                              key={pole.id}
+                              href={`/poles?highlight=${pole.id}`}
+                              className="block p-2 rounded border hover:bg-muted transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-sm">{pole.nom}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Département: {selectedDepartement.nom}
+                                  </p>
+                                </div>
+                                <div className="text-xs text-muted-foreground">ID: {pole.id}</div>
+                              </div>
+                            </Link>
+                          ))}
+                        {poles.filter((p) => p.departementId === selectedDepartement.id).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Aucun pôle dans ce département
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="flex items-center justify-center h-48">
-                  <p className="text-muted-foreground">Sélectionnez un département pour voir ses détails</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="flex items-center justify-center h-48">
+                    <p className="text-muted-foreground">Sélectionnez un département pour voir ses détails</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
+
+        <Dialog open={mobileDetailsOpen} onOpenChange={setMobileDetailsOpen}>
+          <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <Building2 className="h-5 w-5" />
+                <span>Détails du département</span>
+              </DialogTitle>
+            </DialogHeader>
+            {selectedDepartement && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-lg">{selectedDepartement.nom}</h3>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Badge variant="secondary">{selectedDepartement.acronyme}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">Église: {selectedDepartement.eglise?.nom}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ville: {selectedDepartement.eglise?.ville?.nom} ({selectedDepartement.eglise?.ville?.pays?.nom})
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium">
+                      Pôles ({poles.filter((p) => p.departementId === selectedDepartement.id).length})
+                    </h4>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/poles?departement=${selectedDepartement.id}`}>
+                        <Plus className="h-3 w-3 mr-1" />
+                        Ajouter
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {poles
+                      .filter((p) => p.departementId === selectedDepartement.id)
+                      .map((pole) => (
+                        <Link
+                          key={pole.id}
+                          href={`/poles?highlight=${pole.id}`}
+                          className="block p-2 rounded border hover:bg-muted transition-colors"
+                          onClick={() => setMobileDetailsOpen(false)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-sm">{pole.nom}</p>
+                              <p className="text-xs text-muted-foreground">Département: {selectedDepartement.nom}</p>
+                            </div>
+                            <div className="text-xs text-muted-foreground">ID: {pole.id}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    {poles.filter((p) => p.departementId === selectedDepartement.id).length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">Aucun pôle dans ce département</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>

@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import { useMobile } from "@/hooks/use-mobile"
 import { Plus } from "lucide-react"
 import type { Continent, Pays, CreateContinentData } from "@/lib/types"
 
@@ -28,9 +29,11 @@ export default function ContinentsPage() {
   const [selectedContinent, setSelectedContinent] = useState<Continent | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [mobileModalOpen, setMobileModalOpen] = useState(false)
   const [editingContinent, setEditingContinent] = useState<Continent | null>(null)
   const [formData, setFormData] = useState<CreateContinentData>({ nom: "" })
   const { toast } = useToast()
+  const isMobile = useMobile()
 
   const fetchData = async () => {
     try {
@@ -76,6 +79,7 @@ export default function ContinentsPage() {
           description: editingContinent ? "Continent modifié avec succès" : "Continent créé avec succès",
         })
         setDialogOpen(false)
+        setMobileModalOpen(false)
         setEditingContinent(null)
         setFormData({ nom: "" })
         fetchData()
@@ -135,6 +139,9 @@ export default function ContinentsPage() {
 
   const handleRowClick = (continent: Continent) => {
     setSelectedContinent(continent)
+    if (isMobile) {
+      setMobileModalOpen(true)
+    }
   }
 
   const columns = [
@@ -205,7 +212,7 @@ export default function ContinentsPage() {
             </Card>
           </div>
 
-          <div>
+          <div className={isMobile ? "hidden" : ""}>
             {selectedContinent ? (
               <div className="space-y-4">
                 <Card>
@@ -278,6 +285,67 @@ export default function ContinentsPage() {
             )}
           </div>
         </div>
+
+        <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
+          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Détails du Continent</DialogTitle>
+            </DialogHeader>
+            {selectedContinent && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nom:</span>
+                    <span>{selectedContinent.nom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nombre de pays:</span>
+                    <span className="text-blue-600 font-medium">
+                      {pays.filter((p) => p.continentId === selectedContinent.id).length}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Pays en {selectedContinent.nom}</h4>
+                  {paysForSelectedContinent.length > 0 ? (
+                    <div className="space-y-2">
+                      {paysForSelectedContinent.map((country) => (
+                        <div
+                          key={country.id}
+                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                          onClick={() => {
+                            setMobileModalOpen(false)
+                            window.location.href = `/pays?highlight=${country.id}`
+                          }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="font-medium">{country.name}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">→</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">Aucun pays dans ce continent</div>
+                  )}
+                  <Button
+                    className="w-full mt-4 bg-transparent"
+                    variant="outline"
+                    onClick={() => {
+                      setMobileModalOpen(false)
+                      window.location.href = `/pays?continent=${selectedContinent.id}`
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter un pays
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>

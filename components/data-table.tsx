@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { MoreHorizontal, Edit, Trash2, Search } from "lucide-react"
 
 interface Column<T> {
@@ -120,10 +121,19 @@ export function DataTable<T extends { id: number }>({
                             </DropdownMenuItem>
                           )}
                           {onDelete && (
-                            <DropdownMenuItem onClick={() => onDelete(item)} className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
+                            <ConfirmDialog
+                              title="Supprimer cet élément ?"
+                              description="Cette action ne peut pas être annulée. L'élément sera définitivement supprimé."
+                              onConfirm={() => onDelete(item)}
+                            >
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={(e) => e.preventDefault()}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </ConfirmDialog>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>

@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
+import { useMobile } from "@/hooks/use-mobile"
 import { Plus, Map, MapPin, Building2 } from "lucide-react"
 import type { Eglise, Ville, CreateEgliseData, Departement } from "@/lib/types"
 import Link from "next/link"
@@ -33,6 +34,7 @@ export default function EglisesPage() {
   const [selectedEglise, setSelectedEglise] = useState<Eglise | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [mobileModalOpen, setMobileModalOpen] = useState(false)
   const [editingEglise, setEditingEglise] = useState<Eglise | null>(null)
   const [formData, setFormData] = useState<CreateEgliseData>({
     nom: "",
@@ -42,6 +44,7 @@ export default function EglisesPage() {
     longitude: undefined,
   })
   const { toast } = useToast()
+  const isMobile = useMobile()
 
   const fetchData = async () => {
     try {
@@ -96,6 +99,7 @@ export default function EglisesPage() {
           description: editingEglise ? "Église modifiée avec succès" : "Église créée avec succès",
         })
         setDialogOpen(false)
+        setMobileModalOpen(false)
         setEditingEglise(null)
         setFormData({ nom: "", adresse: "", villeId: 0, latitude: undefined, longitude: undefined })
         fetchData()
@@ -173,6 +177,9 @@ export default function EglisesPage() {
 
   const handleRowClick = (eglise: Eglise) => {
     setSelectedEglise(eglise)
+    if (isMobile) {
+      setMobileModalOpen(true)
+    }
   }
 
   const columns = [
@@ -255,7 +262,7 @@ export default function EglisesPage() {
                 </Card>
               </div>
 
-              <div className="space-y-4">
+              <div className={`space-y-4 ${isMobile ? "hidden" : ""}`}>
                 {selectedEglise ? (
                   <Card>
                     <CardHeader>
@@ -335,6 +342,87 @@ export default function EglisesPage() {
             <LeafletMap eglises={eglises.filter((e) => e.latitude && e.longitude)} height="600px" />
           </TabsContent>
         </Tabs>
+
+        <Dialog open={mobileModalOpen} onOpenChange={setMobileModalOpen}>
+          <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Détails de l'Église</DialogTitle>
+            </DialogHeader>
+            {selectedEglise && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Nom:</span>
+                    <span>{selectedEglise.nom}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Adresse:</span>
+                    <span className="text-right text-sm">{selectedEglise.adresse}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Ville:</span>
+                    <span>{selectedEglise.ville?.nom}</span>
+                  </div>
+                  {selectedEglise.latitude && selectedEglise.longitude && (
+                    <div className="flex justify-between">
+                      <span className="font-medium">Coordonnées:</span>
+                      <span className="text-sm">
+                        {selectedEglise.latitude.toFixed(4)}, {selectedEglise.longitude.toFixed(4)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="font-medium">Départements:</span>
+                    <span className="text-blue-600 font-medium">
+                      {departements.filter((d) => d.egliseId === selectedEglise.id).length}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Départements de cette église</h4>
+                  {departements.filter((d) => d.egliseId === selectedEglise.id).length > 0 ? (
+                    <div className="space-y-2">
+                      {departements
+                        .filter((d) => d.egliseId === selectedEglise.id)
+                        .map((departement) => (
+                          <div
+                            key={departement.id}
+                            className="p-2 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                            onClick={() => {
+                              setMobileModalOpen(false)
+                              window.location.href = `/departements?highlight=${departement.id}`
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-sm">{departement.nom}</p>
+                                <p className="text-xs text-muted-foreground">Acronyme: {departement.acronyme}</p>
+                              </div>
+                              <div className="text-xs text-muted-foreground">→</div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">Aucun département dans cette église</div>
+                  )}
+                  <Button
+                    className="w-full mt-4 bg-transparent"
+                    variant="outline"
+                    onClick={() => {
+                      setMobileModalOpen(false)
+                      window.location.href = `/departements?eglise=${selectedEglise.id}`
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ajouter un département
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
